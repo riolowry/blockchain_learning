@@ -51,9 +51,9 @@ class Blockchain {
       // resolve(self.bd.getBlocksCount());
       self.bd
         .getBlocksCount()
-        .then((blocksCount) => {
+        .then(blocksCount => {
           let promises = [];
-          console.log(blocksCount)
+          console.log(blocksCount);
           for (let height = 0; height < blocksCount; height++) {
             promises.push(self.getBlock(height));
           }
@@ -85,21 +85,36 @@ class Blockchain {
             .toString()
             .slice(0, -3);
           if (height > 0) {
-            // previous block hash
+            // get previous hash then compute current hash and add block to the chain
             self
               .getBlock(height - 1)
-              .then(lastBlock => {
-                block.previousHash = lastBlock.hash;
+              .then(previousBlock => {
+                // set previousHash to previousBlock.hash
+                block.previousBlockHash = previousBlock.hash;
+
+                // Compute block hash
+                block.hash = SHA256(JSON.stringify(block)).toString();
+
+                // add block to chain
+                const value = self.bd.addLevelDBData(height, block);
+
+                //resolve
+                resolve(value);
               })
               .catch(err => {
                 console.log(err);
               });
+          } else {
+            // there is no previous block, just compute current hash and add block to the chain.
+            // Compute block hash
+            block.hash = SHA256(JSON.stringify(block)).toString();
+
+            // add block to chain
+            const value = self.bd.addLevelDBData(height, block);
+
+            //resolve
+            resolve(value);
           }
-          // SHA256 requires a string of data
-          block.hash = SHA256(JSON.stringify(block)).toString();
-          // add block to chain
-          const value = self.bd.addLevelDBData(height, block);
-          resolve(value);
         });
       })
       .catch(err => {
@@ -131,16 +146,22 @@ class Blockchain {
       self
         .getBlock(height)
         .then(block => {
-          // hash is added to block after, so must be removed to compute same hash
-          const blockWithoutHash = { ...block, hash: "" };
-          const blockHash = SHA256(JSON.stringify(blockWithoutHash)).toString();
-          const validBlockHash = block.hash;
-          if (validBlockHash === blockHash) {
-            // console.log(`block ${height} is valid`);
-            resolve(true);
+          if (block) {
+            // hash is added to block after, so must be removed to compute same hash
+            const blockWithoutHash = { ...block, hash: "" };
+            const blockHash = SHA256(
+              JSON.stringify(blockWithoutHash)
+            ).toString();
+            const validBlockHash = block.hash;
+            if (validBlockHash === blockHash) {
+              // console.log(`block ${height} is valid`);
+              resolve(true);
+            } else {
+              // console.log(`block ${height} is invalid`);
+              resolve(false);
+            }
           } else {
-            // console.log(`block ${height} is invalid`);
-            resolve(false);
+            reject("Block does not exist!");
           }
         })
         .catch(err => {

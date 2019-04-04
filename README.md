@@ -1,111 +1,188 @@
-# Project #2. Private Blockchain
+# Project #3. RESTful Web API with Node.js Framework
 
-This is Project 2, Private Blockchain, in this project I created the classes to manage my private blockchain, to be able to persist my blochchain I used LevelDB.
+This is Project 3, RESTful Web API with Node.js Framework, in this project I extended my blockchain from project 2 with a RESTful Web API using Express.js. Notes from Project 2 can be found in __./SimpleChainTesting.md__
 
 ## Setup project for Review.
 
 To setup the project for review do the following:
 1. Download the project.
 2. Run command __npm install__ to install the project dependencies.
-3. Run command __node simpleChain.js__ in the root directory.
+3. Run command __npm start__ in the root directory, this will start the server running at http://localhost:8000.
+4. Test via GET and POST requests per testing instructions below
+
+## Framework
+Express.js
+
+## API
+
+*Core Endpoints:*
+
+GET `/api/blockheight/` 
+  - returns the total height of the chain.
+
+POST `/api/block/` 
+  - requires parameter "body" containing a string of the data to be added to the block
+  - will error if body parameter is missing or the value is an empty string.
+  - returns a block object in JSON format
+
+GET `/api/block/:height` 
+  - will return an error if the requested block does not exist.
+  - returns a block object in JSON format for the block at the given height
+
+GET `/api/validate/:height`
+  - returns true if the block at the given height is valid.
+
+GET `/api/validate/`
+  - returns a object showing if the chain is valid or not. 
+
+*Helper endpoints (for testing only):*
+
+GET `/api/block/` 
+  - *For testing purposes only* 
+  - returns a list of all blocks in the chain 
+
+POST `/api/createTestData/` 
+  - *For testing purposes only* 
+  - creates 10 test blocks
+
+POST `/api/createTestData/` 
+  - *For testing purposes only* 
+  - invalidates two blocks in the chain
 
 ## Testing the project
 
-The file __simpleChain.js__ in the root directory has all the code to be able to test the project, please review the comments in the file and uncomment the code to be able to test each feature implemented:
+The api has all the endpoints needed to be able to test the project. To test start the server running at http://localhost:8000 by running the __npm start__ command in the root directory, then follow these instructions:
 
-* Uncomment the function:
-```
-(function theLoop (i) {
-	setTimeout(function () {
-		let blockTest = new Block.Block("Test Block - " + (i + 1));
-		myBlockChain.addNewBlock(blockTest).then((result) => {
-			console.log(result);
-			i++;
-			if (i < 10) theLoop(i);
-		});
-	}, 10000);
-  })(0);
-```
-This function will create 10 test blocks in the chain.
-* Uncomment the function
-```
-myBlockChain.getBlockChain().then((data) => {
-	console.log( data );
-})
-.catch((error) => {
-	console.log(error);
-})
-```
-This function print in the console the list of blocks in the blockchain
-* Uncomment the function
-```
-myBlockChain.getBlock(0).then((block) => {
-	console.log(JSON.stringify(block));
-}).catch((err) => { console.log(err);});
+1. Generate a single block
 
-```
-This function get from the Blockchain the block requested.
-* Uncomment the function
-```
-myBlockChain.validateBlock(0).then((valid) => {
-	console.log(valid);
-})
-.catch((error) => {
-	console.log(error);
-})
-```
-This function validate and show in the console if the block is valid or not, if you want to modify a block to test this function uncomment this code:
-```
-myBlockChain.getBlock(5).then((block) => {
-	let blockAux = block;
-	blockAux.body = "Tampered Block";
-	myBlockChain._modifyBlock(blockAux.height, blockAux).then((blockModified) => {
-		if(blockModified){
-			myBlockChain.validateBlock(blockAux.height).then((valid) => {
-				console.log(`Block #${blockAux.height}, is valid? = ${valid}`);
-			})
-			.catch((error) => {
-				console.log(error);
-			})
-		} else {
-			console.log("The Block wasn't modified");
-		}
-	}).catch((err) => { console.log(err);});
-}).catch((err) => { console.log(err);});
+   POST to `/api/block/` with a body parameter of the form:
 
-myBlockChain.getBlock(6).then((block) => {
-	let blockAux = block;
-	blockAux.previousBlockHash = "jndininuud94j9i3j49dij9ijij39idj9oi";
-	myBlockChain._modifyBlock(blockAux.height, blockAux).then((blockModified) => {
-		if(blockModified){
-			console.log("The Block was modified");
-		} else {
-			console.log("The Block wasn't modified");
-		}
-	}).catch((err) => { console.log(err);});
-}).catch((err) => { console.log(err);});
-```
-* Uncomment this function:
-```
-myBlockChain.validateChain().then((errorLog) => {
-	if(errorLog.length > 0){
-		console.log("The chain is not valid:");
-		errorLog.forEach(error => {
-			console.log(error);
-		});
-	} else {
-		console.log("No errors found, The chain is Valid!");
+   ```
+   {
+      "body": "Testing block with test string data"
+   }
+   ```
+
+   This function will create a block with the given data, add it to the chain and return the block object in JSON format.
+
+   Example call using curl:
+
+	```
+	curl -X POST \
+	http://localhost:8000/api/block \
+	-H 'Cache-Control: no-cache' \
+	-H 'Content-Type: application/json' \
+	-d '{
+		"body":"Some data example"
+	}'
+	```
+
+	Format of returned data:
+
+	```
+	{
+	"hash":"556155ce12a12dd334b4d03eeef0cd4d0b36b64b0cbfdf3eb633222704a470f1",
+	"height":1,
+	"body":"Some data example",
+	"timeStamp":"1554343766",
+	"previousBlockHash":"e216b63be44f3e4219a82763ae2c24bfb71791ed94af917399d4d2b9fc95a8b8"
 	}
-})
-.catch((error) => {
-	console.log(error);
-})
-```
+	```
 
-This function validates the whole chain and return a list of errors found during the validation.
+2. Request a single block
+
+   GET to `/api/block/0` 
+
+   This will return the genisis block object in JSON format.
+
+   Example call using curl:
+
+	```
+	curl http://localhost:8000/api/block/0
+	```
+	
+	Format of returned data:
+	```
+	{
+	"hash":"debfa571fd45f8044c9a5e8164b11696fc565521c770714daf6131dc89c393d4",
+	"height":0,
+	"body":"First block in the chain - Genesis block",
+	"timeStamp":"1554271998",
+	"previousBlockHash":""
+	}
+	```
+3. Validate a single block
+
+   GET to `/api/validate/1` 
+
+   This will return if the block is valid
+
+   Example call using curl:
+
+	```
+	curl http://localhost:8000/api/validate/1
+	```
+
+	Block should be valid
+
+4. Generate test blocks:
+
+   POST to `/api/createTestData/` with no parameters.
+
+   This will create 10 test blocks in the chain.
+
+   Example call using curl:
+
+   ```
+   curl -X POST \
+     http://localhost:8000/api/createTestData/ \
+     -H 'Cache-Control: no-cache' \
+     -H 'Content-Type: application/json'
+   ```
+
+5. Validate the chain
+
+   GET to `/api/validate/` 
+
+   This will return if the chain is valid.
+
+   Example call using curl:
+
+	```
+	curl http://localhost:8000/api/validate
+	```
+   The chain should be valid
+
+6. Tamper with the chain
+
+   POST to `/api/createInvalidBlocks/` 
+
+   This will tamper with 2 blocks on the chain
+
+   Example call using curl:
+
+	```
+   curl -X POST \
+     http://localhost:8000/api/createInvalidBlocks/ \
+     -H 'Cache-Control: no-cache' \
+     -H 'Content-Type: application/json'
+	```
+	
+
+7. Re-validate the chain
+
+   GET to `/api/validate/` 
+
+   This will return if the chain is valid.
+
+   Example call using curl:
+
+	```
+	curl http://localhost:8000/api/validate
+	```
+   The chain should be invalid
 
 ## What did I learn with this Project
 
-* I was able to identify the basic data model for a Blockchain application.
-* I was able to use LevelDB to persist the Blockchain data.
-* I was able to write algorithms for basic operations in the Blockchain.
+* I was able to create and manage a web API with a Node.js framework to interact with my private blockchain application.
+* I was able to generate API endpoints and configure the endpoints response so that my private blockchain's functions can be consumable via web clients.
