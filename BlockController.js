@@ -22,6 +22,16 @@ class BlockController {
     this.validateBlockAtHeight();
     this.validateBlockChain();
     this.createInvalidBlocks();
+    // project 4 APIs
+    // Blockchain ID validation routine
+    this.postRequestValidation();
+    this.postMessageSignatureValidate();
+    //Star registration Endpoint
+    this.postBlock();
+    // Star Lookup
+    this.getStarsByHash();
+    this.getStarsByAddress();
+    this.getStarBlockByHeight();
   }
 
   /**
@@ -270,6 +280,65 @@ class BlockController {
       };
       theLoop(0);
     });
+  }
+
+  // Project 4 APIs
+
+  // Blockchain ID validation routine
+  /**
+   * Web API POST endpoint to validate request with JSON response.
+   * url: "http://localhost:8000/requestValidation"
+   */
+  postRequestValidation() {
+    const self = this;
+    this.app.post("/requestValidation/", (req, res) => {});
+  }
+
+  /**
+   * Web API POST endpoint validates message signature with JSON response.
+   * url: "http://localhost:8000/message-signature/validate"
+   */
+  postMessageSignatureValidate() {
+    const self = this;
+    this.app.post("/message-signature/validate/", (req, res) => {});
+  }
+
+  // Star registration Endpoint
+  /**
+   * Web API POST endpoint with JSON response that submits the Star information to be saved in the Blockchain.
+   * url: "http://localhost:8000/block"
+   */
+  postBlock() {
+    const self = this;
+    this.app.post("/block/", (req, res) => {});
+  }
+
+  // Star Lookup
+  /**
+   * Get Star block by hash with JSON response.
+   * url: "http://localhost:8000/stars/hash:[HASH]"
+   */
+  getStarsByHash() {
+    const self = this;
+    this.app.get("/stars/hash:HASH", (req, res) => {});
+  }
+
+  /**
+   * Get Star block by wallet address (blockchain identity) with JSON response.
+   * url: "http://localhost:8000/stars/address:[ADDRESS]"
+   */
+  getStarsByAddress() {
+    const self = this;
+    this.app.get("/stars/address:ADDRESS", (req, res) => {});
+  }
+
+  /**
+   * Get star block by star block height with JSON response.
+   * url: "http://localhost:8000/block/[HEIGHT]"
+   */
+  getStarBlockByHeight() {
+    const self = this;
+    this.app.get("/block/:HEIGHT", (req, res) => {});
   }
 }
 
